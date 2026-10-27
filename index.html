@@ -15,7 +15,7 @@ label{display:flex;gap:6px;align-items:center;font-size:13px;margin-top:10px;col
 <label><input type="checkbox" id="rm" checked> 在此设备记住（可在页面内“锁定”清除）</label>
 <button id="go" type="submit">解锁</button><div id="msg"></div></form></div>
 <script>
-const SALT='/1W97P62n4i5AtvNdyC74w==',ITER=1000000,V='fb0cb56d39',KS='shjm_key_v1:'+SALT;
+const SALT='/1W97P62n4i5AtvNdyC74w==',ITER=1000000,V='bbc8cd2ea2',KS='shjm_key_v1:'+SALT;
 const b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),b64e=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
 let KEY=null;
 async function derive(pw){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
