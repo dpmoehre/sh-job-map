@@ -15,7 +15,7 @@ label{display:flex;gap:6px;align-items:center;font-size:13px;margin-top:10px;col
 <label><input type="checkbox" id="rm" checked> 在此设备记住（可在页面内“锁定”清除）</label>
 <button id="go" type="submit">解锁</button><div id="msg"></div></form></div>
 <script>
-const SALT='/1W97P62n4i5AtvNdyC74w==',ITER=1000000,V='69ef5c2008',KS='shjm_key_v1:'+SALT;
+const SALT='/1W97P62n4i5AtvNdyC74w==',ITER=1000000,V='80cfe9fc8a',KS='shjm_key_v1:'+SALT;
 const b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),b64e=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
 let KEY=null;
 async function derive(pw){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
@@ -24,9 +24,15 @@ const CN='shjm-bin-v1';
 /* app.bin 密文缓存在 Cache Storage（只存密文，按版本号命名，旧版本自动删除）；附件按需下载 */
 async function fetchBin(name){const url='d/'+name+'.bin?v='+V;let c=null;
   if(name==='app'){try{c=await caches.open(CN);const m=await c.match(url);if(m)return new Uint8Array(await m.arrayBuffer());}catch(e){c=null;}}
-  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);const ab=await r.arrayBuffer();
-  if(c){try{await c.put(url,new Response(ab.slice(0)));for(const k of await c.keys())if(!k.url.endsWith('v='+V))c.delete(k);}catch(e){}}
-  return new Uint8Array(ab);}
+  let last;
+  for(let i=0;i<2;i++){
+    try{
+      const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);const ab=await r.arrayBuffer();
+      if(c){try{await c.put(url,new Response(ab.slice(0)));for(const k of await c.keys())if(!k.url.endsWith('v='+V))c.delete(k);}catch(e){}}
+      return new Uint8Array(ab);
+    }catch(e){last=e;if(String(e&&e.message||'').startsWith('HTTP')||i)throw e;await new Promise(ok=>setTimeout(ok,400));}
+  }
+  throw last;}
 async function getBin(name){const u=await fetchBin(name);return crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},KEY,u.slice(12));}
 async function gunz(buf){const u=new Uint8Array(buf);if(u[0]!==0x1f||u[1]!==0x8b)return buf;return new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();}
 let APP=null;
